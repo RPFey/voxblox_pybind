@@ -39,6 +39,9 @@ class BaseTsdfIntegrator(ABC):
         vertices, triangles = self._integrator._extract_triangle_mesh()
         return np.asarray(vertices), np.asarray(triangles)
 
+    def tsdf_at(self, point:np.ndarray):
+        return self._integrator._tsdf_at(point)
+
 
 class SimpleTsdfIntegrator(BaseTsdfIntegrator):
     def __init__(self, voxel_size: float, sdf_trunc: float, config: Dict = __default_config__):

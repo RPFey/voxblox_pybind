@@ -19,6 +19,7 @@
 
 // voxblox stuff
 #include "voxblox/integrator/tsdf_integrator.h"
+#include "voxblox/interpolator/interpolator.h"
 #include "voxblox/io/sdf_ply.h"
 PYBIND11_MAKE_OPAQUE(std::vector<Eigen::Vector3d>);
 PYBIND11_MAKE_OPAQUE(std::vector<Eigen::Vector3i>);
@@ -144,7 +145,20 @@ void pybind_integrator(py::module& m) {
                  self.integratePointCloud(T_G_C, points_C, colors);
              })
         .def("_extract_triangle_mesh",
-             [=](const Integrator& self) { return ExtractMeshFromVoxbloxLayer(self.getLayer()); });
+             [=](const Integrator& self) { return ExtractMeshFromVoxbloxLayer(self.getLayer()); })
+        .def("_tsdf_at", [](Integrator& self, Eigen::Ref<const Eigen::Vector3d> point){
+            // the initialization of interpolator is only pointer assignment, so we create it each time when we need it
+            auto interpolator = voxblox::Interpolator<TsdfVoxel>(self.getLayer());
+            float distance = 0.; 
+            interpolator.getDistance(point.cast<FloatingPoint>(), &distance);
+            return distance;
+        })
+        .def("_tsdf_at", [](Integrator& self, Eigen::Ref<const Eigen::Vector3f> point){
+            auto interpolator = voxblox::Interpolator<TsdfVoxel>(self.getLayer());
+            float distance = 0.; 
+            interpolator.getDistance(point, &distance);
+            return distance;
+        });
 }
 
 PYBIND11_MODULE(voxblox_pybind, m) {
